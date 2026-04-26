@@ -1,0 +1,272 @@
+{
+  "system": "CORE_BANKING_ODS",
+  "dialect": "teradata",
+  "description": "Reference Deposit ODS — FSLDM-aligned. Covers CASA (Current/Savings), Fixed Deposit, Recurring Deposit, Notice Deposit, Call Deposit, Structured Deposit, Islamic Deposits (Murabaha/Wakala).",
+  "tables": [
+    {
+      "name": "PRTY",
+      "description": "FSLDM PARTY — Customer/counterparty master with SCD2",
+      "columns": [
+        {"name":"PRTY_ID",         "type":"DECIMAL(18,0)","nullable":false,"pk":true},
+        {"name":"PRTY_TYP_CD",     "type":"CHAR(4)",      "nullable":false,"values":"CUST/ORGN/EMPL/INTL"},
+        {"name":"PRTY_SHRT_NM",    "type":"VARCHAR(100)", "nullable":false,"pii":true},
+        {"name":"PRTY_FULL_NM",    "type":"VARCHAR(255)", "nullable":true, "pii":true},
+        {"name":"DOB_DT",          "type":"DATE",         "nullable":true, "pii":true},
+        {"name":"GNDR_CD",         "type":"CHAR(1)",      "nullable":true},
+        {"name":"CNTRY_CD",        "type":"CHAR(3)",      "nullable":false},
+        {"name":"RSDNCY_STAT_CD",  "type":"CHAR(3)",      "nullable":false,"values":"RES/NRS/FRN"},
+        {"name":"SEGMT_CD",        "type":"VARCHAR(10)",  "nullable":true, "values":"RTLA/PREM/CORP/SME/PRIV"},
+        {"name":"KYC_STAT_CD",     "type":"CHAR(3)",      "nullable":false,"values":"VRF/PND/FAL/EXP"},
+        {"name":"TAX_RESID_CD",    "type":"CHAR(3)",      "nullable":true},
+        {"name":"EFF_START_DT",    "type":"DATE",         "nullable":false},
+        {"name":"EFF_END_DT",      "type":"DATE",         "nullable":true},
+        {"name":"CURR_ROW_IND",    "type":"CHAR(1)",      "nullable":false},
+        {"name":"SRC_SYS_CD",      "type":"VARCHAR(20)",  "nullable":false},
+        {"name":"REC_CRET_TS",     "type":"TIMESTAMP(6)", "nullable":false}
+      ]
+    },
+    {
+      "name": "DPOS_AGMT",
+      "description": "FSLDM DEPOSIT AGREEMENT — Master for all deposit product types. One row per account.",
+      "columns": [
+        {"name":"DPOS_AGMT_ID",     "type":"DECIMAL(18,0)","nullable":false,"pk":true},
+        {"name":"PRTY_ID",          "type":"DECIMAL(18,0)","nullable":false,"fk":"PRTY.PRTY_ID"},
+        {"name":"PROD_ID",          "type":"DECIMAL(10,0)","nullable":false,"fk":"PROD.PROD_ID"},
+        {"name":"BRCH_ID",          "type":"DECIMAL(10,0)","nullable":false,"fk":"BRCH.BRCH_ID"},
+        {"name":"DPOS_TYP_CD",      "type":"CHAR(6)",      "nullable":false,"values":"CASA_C/CASA_S/TERM_F/RECR_D/NTIC_D/CALL_D/STRC_D/ISLM_M/ISLM_W"},
+        {"name":"DPOS_STAT_CD",     "type":"CHAR(3)",       "nullable":false,"values":"ACT/CLO/DRM/PND/MAT/FRZ"},
+        {"name":"OPEN_DT",          "type":"DATE",          "nullable":false},
+        {"name":"CLOSE_DT",         "type":"DATE",          "nullable":true},
+        {"name":"MTRTY_DT",         "type":"DATE",          "nullable":true,  "note":"Populated for FD/RD/Notice/Call/Islamic"},
+        {"name":"ORIG_DEPOS_AMT",   "type":"DECIMAL(18,2)", "nullable":true,  "note":"Principal for FD/Islamic; NULL for CASA"},
+        {"name":"CURR_BAL_AMT",     "type":"DECIMAL(18,2)", "nullable":false},
+        {"name":"AVAIL_BAL_AMT",    "type":"DECIMAL(18,2)", "nullable":false},
+        {"name":"BLKD_AMT",         "type":"DECIMAL(18,2)", "nullable":true,  "note":"Blocked/lien amount"},
+        {"name":"ACCRD_INTRS_AMT",  "type":"DECIMAL(18,2)", "nullable":true,  "note":"Accrued but unpaid interest"},
+        {"name":"INTRST_RT",        "type":"DECIMAL(8,4)",  "nullable":true},
+        {"name":"INTRST_RT_TYP_CD", "type":"CHAR(4)",       "nullable":true,  "values":"FIXD/FLOT/SLAB/TITR"},
+        {"name":"INTRST_PYMT_FREQ", "type":"CHAR(3)",       "nullable":true,  "values":"MTH/QTR/SAN/ANN/MAT/DLY"},
+        {"name":"RNWL_IND",         "type":"CHAR(1)",       "nullable":true,  "values":"Y/N — auto-renewal for FD"},
+        {"name":"RNWL_TYP_CD",      "type":"CHAR(4)",       "nullable":true,  "values":"P/PI — principal or principal+interest"},
+        {"name":"PRMTR_WTHD_PANL_RT","type":"DECIMAL(6,4)","nullable":true,  "note":"Premature withdrawal penalty rate for FD"},
+        {"name":"NTIC_DAYS_CNT",    "type":"SMALLINT",      "nullable":true,  "note":"Notice period in days for Notice Deposit"},
+        {"name":"CALL_MTRTY_DT",    "type":"DATE",          "nullable":true,  "note":"Call deposit maturity (next business day or agreed)"},
+        {"name":"CRNCY_CD",         "type":"CHAR(3)",       "nullable":false},
+        {"name":"JNT_ACCT_IND",     "type":"CHAR(1)",       "nullable":false, "values":"Y/N"},
+        {"name":"DORMANT_DT",       "type":"DATE",          "nullable":true,  "note":"Date account became dormant"},
+        {"name":"ISLM_CONTR_TYP",   "type":"CHAR(6)",       "nullable":true,  "values":"MRBA/WKLA — Murabaha/Wakala"},
+        {"name":"ISLM_EXPC_PRFT_RT","type":"DECIMAL(8,4)",  "nullable":true,  "note":"Islamic expected profit rate"},
+        {"name":"TAX_WTHHD_IND",    "type":"CHAR(1)",       "nullable":false, "values":"Y/N — withholding tax applicable"},
+        {"name":"STRC_PROD_CD",     "type":"VARCHAR(20)",   "nullable":true,  "note":"Structured product code if DPOS_TYP_CD=STRC_D"},
+        {"name":"SRC_SYS_CD",       "type":"VARCHAR(20)",   "nullable":false},
+        {"name":"REC_CRET_TS",      "type":"TIMESTAMP(6)",  "nullable":false}
+      ]
+    },
+    {
+      "name": "DPOS_BAL",
+      "description": "Daily balance record per deposit account. Source of truth for EOD balance positions.",
+      "columns": [
+        {"name":"DPOS_AGMT_ID",     "type":"DECIMAL(18,0)","nullable":false,"pk":true,"fk":"DPOS_AGMT.DPOS_AGMT_ID"},
+        {"name":"BAL_DT",           "type":"DATE",         "nullable":false,"pk":true},
+        {"name":"CURR_BAL_AMT",     "type":"DECIMAL(18,2)","nullable":false},
+        {"name":"AVAIL_BAL_AMT",    "type":"DECIMAL(18,2)","nullable":false},
+        {"name":"BLKD_AMT",         "type":"DECIMAL(18,2)","nullable":true},
+        {"name":"ACCRD_INTRS_AMT",  "type":"DECIMAL(18,2)","nullable":true},
+        {"name":"INTRST_RT",        "type":"DECIMAL(8,4)", "nullable":true, "note":"Effective rate on this date"},
+        {"name":"SRC_SYS_CD",       "type":"VARCHAR(20)",  "nullable":false},
+        {"name":"REC_CRET_TS",      "type":"TIMESTAMP(6)", "nullable":false}
+      ]
+    },
+    {
+      "name": "DPOS_INTRS_ACCRL",
+      "description": "Daily interest accrual per deposit account. Populated by EOD batch.",
+      "columns": [
+        {"name":"ACCRL_ID",         "type":"DECIMAL(18,0)","nullable":false,"pk":true},
+        {"name":"DPOS_AGMT_ID",     "type":"DECIMAL(18,0)","nullable":false,"fk":"DPOS_AGMT.DPOS_AGMT_ID"},
+        {"name":"ACCRL_DT",         "type":"DATE",         "nullable":false},
+        {"name":"ACCRL_AMT",        "type":"DECIMAL(18,2)","nullable":false,"note":"Daily interest accrual amount"},
+        {"name":"ACCRL_MTHD_CD",    "type":"CHAR(4)",      "nullable":false,"values":"ACT365/ACT360/30360"},
+        {"name":"DAYS_ACCRD_CNT",   "type":"SMALLINT",     "nullable":false,"note":"Number of days in accrual period"},
+        {"name":"EFFCTV_INTRST_RT", "type":"DECIMAL(8,4)", "nullable":false},
+        {"name":"CRNCY_CD",         "type":"CHAR(3)",      "nullable":false},
+        {"name":"REVRS_IND",        "type":"CHAR(1)",      "nullable":false},
+        {"name":"ISLM_PRFT_AMT",    "type":"DECIMAL(18,2)","nullable":true, "note":"Islamic profit component"},
+        {"name":"TAX_WTHHD_AMT",    "type":"DECIMAL(18,2)","nullable":true, "note":"Withholding tax deducted"},
+        {"name":"SRC_SYS_CD",       "type":"VARCHAR(20)",  "nullable":false},
+        {"name":"REC_CRET_TS",      "type":"TIMESTAMP(6)", "nullable":false}
+      ]
+    },
+    {
+      "name": "DPOS_INTRS_PYMT",
+      "description": "Actual interest payment/posting record. Separate from accrual.",
+      "columns": [
+        {"name":"INTRS_PYMT_ID",    "type":"DECIMAL(18,0)","nullable":false,"pk":true},
+        {"name":"DPOS_AGMT_ID",     "type":"DECIMAL(18,0)","nullable":false,"fk":"DPOS_AGMT.DPOS_AGMT_ID"},
+        {"name":"PYMT_DT",          "type":"DATE",         "nullable":false},
+        {"name":"PYMT_PERD_FROM_DT","type":"DATE",         "nullable":false},
+        {"name":"PYMT_PERD_TO_DT",  "type":"DATE",         "nullable":false},
+        {"name":"GROSS_INTRS_AMT",  "type":"DECIMAL(18,2)","nullable":false},
+        {"name":"TAX_WTHHD_AMT",    "type":"DECIMAL(18,2)","nullable":true},
+        {"name":"NET_INTRS_AMT",    "type":"DECIMAL(18,2)","nullable":false},
+        {"name":"CRNCY_CD",         "type":"CHAR(3)",      "nullable":false},
+        {"name":"PYMT_MTHD_CD",     "type":"CHAR(4)",      "nullable":false,"values":"CRED/DRCT/CHQE"},
+        {"name":"STAT_CD",          "type":"CHAR(3)",      "nullable":false,"values":"PST/PND/FAL"},
+        {"name":"SRC_SYS_CD",       "type":"VARCHAR(20)",  "nullable":false},
+        {"name":"REC_CRET_TS",      "type":"TIMESTAMP(6)", "nullable":false}
+      ]
+    },
+    {
+      "name": "DPOS_EVNT",
+      "description": "Current deposit transaction events (< 12 months). Debits, credits, fees, charges.",
+      "columns": [
+        {"name":"EVNT_ID",          "type":"DECIMAL(18,0)","nullable":false,"pk":true},
+        {"name":"DPOS_AGMT_ID",     "type":"DECIMAL(18,0)","nullable":false,"fk":"DPOS_AGMT.DPOS_AGMT_ID"},
+        {"name":"EVNT_TYP_CD",      "type":"CHAR(6)",      "nullable":false,"values":"DEPOS/WTHDR/INTRC/FEECD/CHGCD/TAXWH/CLSPR/RNWPR/PENLT/ISLMP"},
+        {"name":"EVNT_DT",          "type":"DATE",         "nullable":false},
+        {"name":"EVNT_TS",          "type":"TIMESTAMP(6)", "nullable":false},
+        {"name":"DR_CR_IND",        "type":"CHAR(1)",      "nullable":false,"values":"D/C"},
+        {"name":"EVNT_AMT",         "type":"DECIMAL(18,2)","nullable":false},
+        {"name":"CRNCY_CD",         "type":"CHAR(3)",      "nullable":false},
+        {"name":"CHNL_CD",          "type":"VARCHAR(10)",  "nullable":true, "values":"BRCH/ATM/MOB/WEB/TLER/API"},
+        {"name":"STAT_CD",          "type":"CHAR(3)",      "nullable":false,"values":"PST/PND/REJ/RVS"},
+        {"name":"REVRS_IND",        "type":"CHAR(1)",      "nullable":false},
+        {"name":"ORIG_EVNT_ID",     "type":"DECIMAL(18,0)","nullable":true, "note":"Parent event for reversals"},
+        {"name":"BAL_AFT_EVNT_AMT", "type":"DECIMAL(18,2)","nullable":true, "note":"Running balance after event"},
+        {"name":"REF_NO",           "type":"VARCHAR(50)",  "nullable":true},
+        {"name":"SRC_SYS_CD",       "type":"VARCHAR(20)",  "nullable":false},
+        {"name":"REC_CRET_TS",      "type":"TIMESTAMP(6)", "nullable":false}
+      ]
+    },
+    {
+      "name": "DPOS_EVNT_ARCV",
+      "description": "Archived deposit events (> 12 months). Identical structure to DPOS_EVNT — used in UNION ALL.",
+      "columns": [
+        {"name":"EVNT_ID",          "type":"DECIMAL(18,0)","nullable":false,"pk":true},
+        {"name":"DPOS_AGMT_ID",     "type":"DECIMAL(18,0)","nullable":false},
+        {"name":"EVNT_TYP_CD",      "type":"CHAR(6)",      "nullable":false},
+        {"name":"EVNT_DT",          "type":"DATE",         "nullable":false},
+        {"name":"EVNT_TS",          "type":"TIMESTAMP(6)", "nullable":false},
+        {"name":"DR_CR_IND",        "type":"CHAR(1)",      "nullable":false},
+        {"name":"EVNT_AMT",         "type":"DECIMAL(18,2)","nullable":false},
+        {"name":"CRNCY_CD",         "type":"CHAR(3)",      "nullable":false},
+        {"name":"CHNL_CD",          "type":"VARCHAR(10)",  "nullable":true},
+        {"name":"STAT_CD",          "type":"CHAR(3)",      "nullable":false},
+        {"name":"REVRS_IND",        "type":"CHAR(1)",      "nullable":false},
+        {"name":"ORIG_EVNT_ID",     "type":"DECIMAL(18,0)","nullable":true},
+        {"name":"BAL_AFT_EVNT_AMT", "type":"DECIMAL(18,2)","nullable":true},
+        {"name":"REF_NO",           "type":"VARCHAR(50)",  "nullable":true},
+        {"name":"SRC_SYS_CD",       "type":"VARCHAR(20)",  "nullable":false},
+        {"name":"REC_CRET_TS",      "type":"TIMESTAMP(6)", "nullable":false}
+      ]
+    },
+    {
+      "name": "TD_SCHD",
+      "description": "Term/Fixed Deposit schedule — maturity, renewal, premature withdrawal.",
+      "columns": [
+        {"name":"TD_SCHD_ID",       "type":"DECIMAL(18,0)","nullable":false,"pk":true},
+        {"name":"DPOS_AGMT_ID",     "type":"DECIMAL(18,0)","nullable":false,"fk":"DPOS_AGMT.DPOS_AGMT_ID"},
+        {"name":"SCHD_TYP_CD",      "type":"CHAR(6)",      "nullable":false,"values":"ORIG/RNWL/PRMTR"},
+        {"name":"SCHD_SEQ_NO",      "type":"SMALLINT",     "nullable":false,"note":"Renewal sequence number (1=original)"},
+        {"name":"STRT_DT",          "type":"DATE",         "nullable":false},
+        {"name":"MTRTY_DT",         "type":"DATE",         "nullable":false},
+        {"name":"TNOR_DAYS_CNT",    "type":"SMALLINT",     "nullable":false},
+        {"name":"PRINC_AMT",        "type":"DECIMAL(18,2)","nullable":false},
+        {"name":"INTRST_RT",        "type":"DECIMAL(8,4)", "nullable":false},
+        {"name":"MTRTY_AMT",        "type":"DECIMAL(18,2)","nullable":true, "note":"Principal + interest at maturity"},
+        {"name":"PRMTR_DT",         "type":"DATE",         "nullable":true, "note":"Premature withdrawal date if applicable"},
+        {"name":"PRMTR_PANL_AMT",   "type":"DECIMAL(18,2)","nullable":true},
+        {"name":"STAT_CD",          "type":"CHAR(3)",       "nullable":false,"values":"ACT/MAT/PRE/RNW"},
+        {"name":"SRC_SYS_CD",       "type":"VARCHAR(20)",  "nullable":false},
+        {"name":"REC_CRET_TS",      "type":"TIMESTAMP(6)", "nullable":false}
+      ]
+    },
+    {
+      "name": "RD_INSTL_SCHD",
+      "description": "Recurring Deposit instalment schedule — monthly instalment tracking.",
+      "columns": [
+        {"name":"INSTL_ID",         "type":"DECIMAL(18,0)","nullable":false,"pk":true},
+        {"name":"DPOS_AGMT_ID",     "type":"DECIMAL(18,0)","nullable":false,"fk":"DPOS_AGMT.DPOS_AGMT_ID"},
+        {"name":"INSTL_NO",         "type":"SMALLINT",     "nullable":false},
+        {"name":"INSTL_DUE_DT",     "type":"DATE",         "nullable":false},
+        {"name":"INSTL_PAID_DT",    "type":"DATE",         "nullable":true},
+        {"name":"INSTL_AMT",        "type":"DECIMAL(18,2)","nullable":false},
+        {"name":"PAID_AMT",         "type":"DECIMAL(18,2)","nullable":true},
+        {"name":"STAT_CD",          "type":"CHAR(3)",       "nullable":false,"values":"DUE/PAID/MISS/PART"},
+        {"name":"PENLT_AMT",        "type":"DECIMAL(18,2)","nullable":true, "note":"Penalty for missed instalment"},
+        {"name":"CRNCY_CD",         "type":"CHAR(3)",       "nullable":false},
+        {"name":"SRC_SYS_CD",       "type":"VARCHAR(20)",   "nullable":false},
+        {"name":"REC_CRET_TS",      "type":"TIMESTAMP(6)",  "nullable":false}
+      ]
+    },
+    {
+      "name": "ISLM_AGMT",
+      "description": "Islamic Deposit Agreement extension — Murabaha and Wakala specific attributes.",
+      "columns": [
+        {"name":"ISLM_AGMT_ID",     "type":"DECIMAL(18,0)","nullable":false,"pk":true},
+        {"name":"DPOS_AGMT_ID",     "type":"DECIMAL(18,0)","nullable":false,"fk":"DPOS_AGMT.DPOS_AGMT_ID","unique":true},
+        {"name":"ISLM_CONTR_TYP",   "type":"CHAR(6)",      "nullable":false,"values":"MRBA/WKLA"},
+        {"name":"WKLA_POOL_CD",     "type":"VARCHAR(20)",  "nullable":true, "note":"Wakala investment pool"},
+        {"name":"EXPC_PRFT_RT",     "type":"DECIMAL(8,4)", "nullable":false},
+        {"name":"ACTUAL_PRFT_RT",   "type":"DECIMAL(8,4)", "nullable":true, "note":"Populated after profit declaration"},
+        {"name":"PRFT_DISTRIB_DT",  "type":"DATE",         "nullable":true},
+        {"name":"PRFT_DISTRIB_AMT", "type":"DECIMAL(18,2)","nullable":true},
+        {"name":"SHARIA_CERT_NO",   "type":"VARCHAR(50)",  "nullable":true},
+        {"name":"COMMD_TYP_CD",     "type":"VARCHAR(20)",  "nullable":true, "note":"Commodity type for Murabaha"},
+        {"name":"COMMD_COST_AMT",   "type":"DECIMAL(18,2)","nullable":true},
+        {"name":"COMMD_SELL_AMT",   "type":"DECIMAL(18,2)","nullable":true},
+        {"name":"SRC_SYS_CD",       "type":"VARCHAR(20)",  "nullable":false},
+        {"name":"REC_CRET_TS",      "type":"TIMESTAMP(6)", "nullable":false}
+      ]
+    },
+    {
+      "name": "PROD",
+      "description": "FSLDM PRODUCT — Product catalogue for all deposit products.",
+      "columns": [
+        {"name":"PROD_ID",          "type":"DECIMAL(10,0)","nullable":false,"pk":true},
+        {"name":"PROD_CD",          "type":"VARCHAR(20)",  "nullable":false},
+        {"name":"PROD_NM",          "type":"VARCHAR(100)", "nullable":false},
+        {"name":"PROD_CATG_CD",     "type":"CHAR(4)",      "nullable":false,"values":"CASA/TERM/RECR/NTIC/CALL/STRC/ISLM"},
+        {"name":"PROD_SUBCATG_CD",  "type":"CHAR(6)",      "nullable":true},
+        {"name":"MIN_BAL_AMT",      "type":"DECIMAL(18,2)","nullable":true},
+        {"name":"MIN_DEPOS_AMT",    "type":"DECIMAL(18,2)","nullable":true},
+        {"name":"MIN_TNOR_DAYS_CNT","type":"SMALLINT",     "nullable":true},
+        {"name":"MAX_TNOR_DAYS_CNT","type":"SMALLINT",     "nullable":true},
+        {"name":"INTRST_BEARING_IND","type":"CHAR(1)",     "nullable":false,"values":"Y/N"},
+        {"name":"ISLM_IND",         "type":"CHAR(1)",      "nullable":false,"values":"Y/N"},
+        {"name":"ACTV_IND",         "type":"CHAR(1)",      "nullable":false},
+        {"name":"REC_CRET_TS",      "type":"TIMESTAMP(6)", "nullable":false}
+      ]
+    },
+    {
+      "name": "BRCH",
+      "description": "Branch master table.",
+      "columns": [
+        {"name":"BRCH_ID",          "type":"DECIMAL(10,0)","nullable":false,"pk":true},
+        {"name":"BRCH_CD",          "type":"VARCHAR(10)",  "nullable":false},
+        {"name":"BRCH_NM",          "type":"VARCHAR(100)", "nullable":false},
+        {"name":"BRCH_TYP_CD",      "type":"CHAR(4)",      "nullable":false,"values":"MAIN/SUBB/MOBL/DGTL"},
+        {"name":"RGN_CD",           "type":"VARCHAR(10)",  "nullable":true},
+        {"name":"CNTRY_CD",         "type":"CHAR(3)",      "nullable":false},
+        {"name":"ACTV_IND",         "type":"CHAR(1)",      "nullable":false},
+        {"name":"REC_CRET_TS",      "type":"TIMESTAMP(6)", "nullable":false}
+      ]
+    },
+    {
+      "name": "INTRST_RT_TBL",
+      "description": "Interest rate slab/tier table — used for SLAB and TITR rate types.",
+      "columns": [
+        {"name":"RT_TBL_ID",        "type":"DECIMAL(10,0)","nullable":false,"pk":true},
+        {"name":"PROD_ID",          "type":"DECIMAL(10,0)","nullable":false,"fk":"PROD.PROD_ID"},
+        {"name":"EFF_DT",           "type":"DATE",         "nullable":false},
+        {"name":"EXP_DT",           "type":"DATE",         "nullable":true},
+        {"name":"SLAB_FROM_AMT",    "type":"DECIMAL(18,2)","nullable":false},
+        {"name":"SLAB_TO_AMT",      "type":"DECIMAL(18,2)","nullable":true},
+        {"name":"TNOR_FROM_DAYS",   "type":"SMALLINT",     "nullable":true},
+        {"name":"TNOR_TO_DAYS",     "type":"SMALLINT",     "nullable":true},
+        {"name":"INTRST_RT",        "type":"DECIMAL(8,4)", "nullable":false},
+        {"name":"CRNCY_CD",         "type":"CHAR(3)",      "nullable":false},
+        {"name":"REC_CRET_TS",      "type":"TIMESTAMP(6)", "nullable":false}
+      ]
+    }
+  ]
+}

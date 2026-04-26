@@ -1,0 +1,181 @@
+# ============================================================
+# Soda Core checks — FSLDM Deposit Pipeline
+# Run: soda scan -d your_teradata_connection -c checks.yml
+# ============================================================
+
+checks for FCT_DPOS_BAL:
+
+  # ── Row count ────────────────────────────────────────────
+  - row_count >= 1:
+      name: "FCT_DPOS_BAL must have at least 1 row"
+
+  # ── Grain uniqueness ─────────────────────────────────────
+  - duplicate_count(dpos_agmt_id, bal_dt) = 0:
+      name: "FCT_DPOS_BAL grain must be unique (DPOS_AGMT_ID + BAL_DT)"
+
+  # ── Required column NULLs ────────────────────────────────
+  - missing_count(dpos_agmt_id) = 0
+  - missing_count(bal_dt) = 0
+  - missing_count(prty_id) = 0
+  - missing_count(prod_id) = 0
+  - missing_count(brch_id) = 0
+  - missing_count(dpos_typ_cd) = 0
+  - missing_count(dpos_typ_desc) = 0
+  - missing_count(dpos_stat_cd) = 0
+  - missing_count(crncy_cd) = 0
+  - missing_count(curr_bal_amt) = 0
+  - missing_count(avail_bal_amt) = 0
+  - missing_count(casa_ind) = 0
+  - missing_count(term_depos_ind) = 0
+  - missing_count(islm_ind) = 0
+  - missing_count(dormant_ind) = 0
+  - missing_count(tax_wthhd_ind) = 0
+  - missing_count(etl_cret_ts) = 0
+
+  # ── Coded column validity ────────────────────────────────
+  - invalid_percent(dpos_typ_cd) < 0.1%:
+      valid values:
+        - CASA_C
+        - CASA_S
+        - TERM_F
+        - RECR_D
+        - NTIC_D
+        - CALL_D
+        - STRC_D
+        - ISLM_M
+        - ISLM_W
+      name: "DPOS_TYP_CD must be in known value set"
+
+  - invalid_percent(dpos_stat_cd) < 0.1%:
+      valid values: [ACT, DRM, PND, MAT, FRZ]
+      name: "DPOS_STAT_CD must not include CLO (filter check)"
+
+  - invalid_percent(casa_ind) < 0.1%:
+      valid values: ['Y', 'N']
+
+  - invalid_percent(islm_ind) < 0.1%:
+      valid values: ['Y', 'N']
+
+  - invalid_percent(dormant_ind) < 0.1%:
+      valid values: ['Y', 'N']
+
+  # ── Numeric range ────────────────────────────────────────
+  - min(curr_bal_amt) >= 0:
+      name: "CURR_BAL_AMT must not be negative"
+
+  - min(avail_bal_amt) >= 0:
+      name: "AVAIL_BAL_AMT must not be negative"
+
+  # ── Freshness ────────────────────────────────────────────
+  - freshness(etl_cret_ts) < 25h:
+      name: "FCT_DPOS_BAL must be loaded within last 25 hours (daily load)"
+
+
+checks for FCT_DPOS_EVNT:
+
+  # ── Row count ────────────────────────────────────────────
+  - row_count >= 1
+
+  # ── PK uniqueness ────────────────────────────────────────
+  - duplicate_count(evnt_id) = 0:
+      name: "EVNT_ID must be unique in FCT_DPOS_EVNT"
+
+  # ── Required NULLs ───────────────────────────────────────
+  - missing_count(evnt_id) = 0
+  - missing_count(dpos_agmt_id) = 0
+  - missing_count(evnt_dt) = 0
+  - missing_count(evnt_typ_cd) = 0
+  - missing_count(evnt_typ_desc) = 0
+  - missing_count(evnt_catg_cd) = 0
+  - missing_count(dpos_typ_cd) = 0
+  - missing_count(dr_cr_ind) = 0
+  - missing_count(evnt_amt) = 0
+  - missing_count(signed_amt) = 0
+  - missing_count(crncy_cd) = 0
+  - missing_count(revrs_ind) = 0
+  - missing_count(stat_cd) = 0
+  - missing_count(data_src) = 0
+  - missing_count(etl_cret_ts) = 0
+
+  # ── Coded columns ────────────────────────────────────────
+  - invalid_percent(evnt_typ_cd) < 0.1%:
+      valid values: [DEPOS, WTHDR, INTRC, FEECD, CHGCD, TAXWH, CLSPR, RNWPR, PENLT, ISLMP]
+
+  - invalid_percent(evnt_catg_cd) < 0.1%:
+      valid values: [FUNDING, WITHDRAWAL, INTEREST, FEE_TAX, OTHER]
+
+  - invalid_percent(dr_cr_ind) < 0.1%:
+      valid values: ['D', 'C']
+
+  - invalid_percent(data_src) < 0.1%:
+      valid values: [CURRENT, ARCHIVE]
+
+  - invalid_percent(revrs_ind) = 0%:
+      valid values: ['N']
+      name: "No reversed events should exist in FCT_DPOS_EVNT"
+
+  - invalid_percent(stat_cd) < 0.1%:
+      valid values: [PST, PND, REJ, RVS]
+
+  # ── Amount rules ─────────────────────────────────────────
+  - min(evnt_amt) > 0:
+      name: "EVNT_AMT must always be positive"
+
+  # ── Freshness ────────────────────────────────────────────
+  - freshness(etl_cret_ts) < 25h
+
+
+checks for FCT_INTRS_ACCRL:
+
+  # ── Row count ────────────────────────────────────────────
+  - row_count >= 1
+
+  # ── Grain uniqueness ─────────────────────────────────────
+  - duplicate_count(dpos_agmt_id, accrl_dt) = 0:
+      name: "FCT_INTRS_ACCRL grain must be unique (DPOS_AGMT_ID + ACCRL_DT)"
+
+  # ── Required NULLs ───────────────────────────────────────
+  - missing_count(dpos_agmt_id) = 0
+  - missing_count(accrl_dt) = 0
+  - missing_count(prty_id) = 0
+  - missing_count(prod_id) = 0
+  - missing_count(dpos_typ_cd) = 0
+  - missing_count(accrl_amt) = 0
+  - missing_count(effctv_intrst_rt) = 0
+  - missing_count(accrl_mthd_cd) = 0
+  - missing_count(days_accrd_cnt) = 0
+  - missing_count(gross_accrl_amt) = 0
+  - missing_count(tax_wthhd_amt) = 0
+  - missing_count(net_accrl_amt) = 0
+  - missing_count(crncy_cd) = 0
+  - missing_count(revrs_ind) = 0
+  - missing_count(cumul_accrl_amt_mtd) = 0
+  - missing_count(cumul_accrl_amt_ytd) = 0
+  - missing_count(etl_cret_ts) = 0
+
+  # ── Coded columns ────────────────────────────────────────
+  - invalid_percent(accrl_mthd_cd) < 0.1%:
+      valid values: [ACT365, ACT360, '30360']
+
+  - invalid_percent(revrs_ind) = 0%:
+      valid values: ['N']
+      name: "No reversed accruals should exist in FCT_INTRS_ACCRL"
+
+  - invalid_percent(dpos_typ_cd) < 0.1%:
+      valid values: [CASA_C, CASA_S, TERM_F, RECR_D, NTIC_D, CALL_D, STRC_D, ISLM_M, ISLM_W]
+
+  # ── Numeric ranges ───────────────────────────────────────
+  - min(accrl_amt) >= 0:
+      name: "Accrual amount must not be negative"
+
+  - min(effctv_intrst_rt) >= 0
+  - max(effctv_intrst_rt) <= 100
+
+  - min(days_accrd_cnt) >= 1
+  - max(days_accrd_cnt) <= 366
+
+  - min(cumul_accrl_amt_mtd) >= 0
+  - min(cumul_accrl_amt_ytd) >= 0
+
+  # ── Freshness ────────────────────────────────────────────
+  - freshness(etl_cret_ts) < 25h
