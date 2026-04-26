@@ -7,13 +7,14 @@ import json
 from pathlib import Path
 from typing import Any, Optional
 
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from agents.contacts import save_contact
 from agents.dev_agent import dev_node
+from agents.excel_loader import parse_excel
 from agents.mapping_agent import _heuristic_mapping
 from agents.main import load_schemas
 from agents.runs import get_run, list_runs, new_run, update_run
@@ -26,7 +27,12 @@ app = FastAPI(title="FSLDM SDLC API", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001"],
+    allow_origins=[
+        "http://localhost:3000", "http://localhost:3001",
+        "https://fsldm.vercel.app",
+        "https://fsldm-data-sdlc-agents.vercel.app",
+    ],
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -144,6 +150,29 @@ def submit_hitl(run_id: str, req: HitlRequest) -> dict[str, Any]:
         "artifacts": [a.model_dump() for a in artifacts],
         "test_report": report.model_dump(),
     }
+
+
+@app.post("/api/runs/from-excel")
+async def create_run_from_excel(
+    file: UploadFile = File(...),
+    dialect: str = Form("teradata"),
+    user_email: str = Form("demo@local"),
+) -> dict[str, Any]:
+    """Parse uploaded mapping-spec Excel and start a run with the parsed MappingSpec."""
+    if not file.filename or not file.filename.lower().endswith((".xlsx", ".xlsm")):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "expected .xlsx file")
+    content = await file.read()
+    if len(content) > 5 * 1024 * 1024:
+        raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "file too large (>5 MB)")
+    try:
+        _src, _tgt, spec = parse_excel(content, dialect=dialect)
+    except Exception as e:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, f"parse failed: {e}")
+    if not spec.target_tables:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "no FCT_*/DIM_* sheets found")
+    rid = new_run(dialect=dialect, user_email=user_email)
+    update_run(rid, stage="hitl", mapping_json=spec.model_dump_json())
+    return {"run_id": rid, "mapping": spec.model_dump(), "source": "excel", "filename": file.filename}
 
 
 @app.post("/api/contact")

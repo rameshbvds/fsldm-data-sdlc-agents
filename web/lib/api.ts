@@ -73,6 +73,20 @@ export async function submitHitl(id: string, decision: string, feedback = "") {
   if (!r.ok) throw new Error("hitl failed");
   return r.json();
 }
+export async function createRunFromExcel(file: File, dialect: string, user_email = "demo@local") {
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("dialect", dialect);
+  fd.append("user_email", user_email);
+  const r = await fetch(`${base}/api/runs/from-excel`, { method: "POST", body: fd });
+  if (!r.ok) {
+    let msg = "upload failed";
+    try { const e = await r.json(); msg = e.detail || msg; } catch {}
+    throw new Error(msg);
+  }
+  return r.json() as Promise<{ run_id: string; mapping: MappingSpec; source: string; filename: string }>;
+}
+
 export function artifactUrl(path: string) {
   return `${base}/api/artifacts/${path}`;
 }

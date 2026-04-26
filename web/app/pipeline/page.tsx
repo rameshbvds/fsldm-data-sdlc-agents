@@ -1,7 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, CheckCircle2, Download, Loader2, Sparkles, XCircle } from "lucide-react";
+import { ArrowRight, CheckCircle2, Download, FileSpreadsheet, Loader2, Sparkles, Upload, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,7 @@ import { StatCard } from "@/components/stat-card";
 import {
   artifactUrl,
   createRun,
+  createRunFromExcel,
   submitHitl,
   type Artifact,
   type MappingSpec,
@@ -39,6 +40,10 @@ export default function PipelinePage() {
   const [artifacts, setArtifacts] = useState<Artifact[] | null>(null);
   const [testReport, setTestReport] = useState<TestReport | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [source, setSource] = useState<"preset" | "upload">("preset");
+  const [excelFile, setExcelFile] = useState<File | null>(null);
+  const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const stage = !runId ? 0 : !artifacts ? 1 : 3;
   const done = !runId ? -1 : !artifacts ? 0 : 3;
@@ -49,13 +54,35 @@ export default function PipelinePage() {
     setArtifacts(null);
     setTestReport(null);
     try {
-      const res = await createRun(dialect);
+      let res;
+      if (source === "upload") {
+        if (!excelFile) {
+          setError("Please pick an Excel file first.");
+          setBusy(false);
+          return;
+        }
+        res = await createRunFromExcel(excelFile, dialect);
+      } else {
+        res = await createRun(dialect);
+      }
       setRunId(res.run_id);
       setSpec(res.mapping);
     } catch (e: any) {
       setError(e?.message || "failed");
     } finally {
       setBusy(false);
+    }
+  }
+
+  function handleDrop(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    setDragOver(false);
+    const f = e.dataTransfer.files?.[0];
+    if (f && /\.(xlsx|xlsm)$/i.test(f.name)) {
+      setExcelFile(f);
+      setSource("upload");
+    } else if (f) {
+      setError("Please drop an .xlsx or .xlsm file.");
     }
   }
 
@@ -108,7 +135,104 @@ export default function PipelinePage() {
 
       {/* Run controls */}
       <Card>
-        <CardContent className="pt-6">
+        <CardContent className="pt-6 space-y-6">
+          {/* Source toggle */}
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+              Mapping source
+            </label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setSource("preset")}
+                className={`rounded-xl border-2 p-4 text-left transition-all ${
+                  source === "preset"
+                    ? "border-gold/40 bg-gold/5"
+                    : "border-border bg-card hover:border-foreground/20"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${source === "preset" ? "bg-gold/15 text-gold-400" : "bg-muted text-muted-foreground"}`}>
+                    <Sparkles className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="font-semibold">Bundled FSLDM Demo</div>
+                    <div className="text-xs text-muted-foreground mt-0.5">
+                      13 source tables · 3 target facts · 80 fields
+                    </div>
+                  </div>
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSource("upload")}
+                className={`rounded-xl border-2 p-4 text-left transition-all ${
+                  source === "upload"
+                    ? "border-gold/40 bg-gold/5"
+                    : "border-border bg-card hover:border-foreground/20"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${source === "upload" ? "bg-gold/15 text-gold-400" : "bg-muted text-muted-foreground"}`}>
+                    <FileSpreadsheet className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="font-semibold">Upload Excel Mapping Spec</div>
+                    <div className="text-xs text-muted-foreground mt-0.5">
+                      .xlsx with FCT_*/DIM_* sheets · ≤5 MB
+                    </div>
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {/* Upload drop zone (when upload selected) */}
+          {source === "upload" && (
+            <div
+              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+              className={`relative cursor-pointer rounded-xl border-2 border-dashed p-8 text-center transition-all ${
+                dragOver
+                  ? "border-gold/60 bg-gold/10"
+                  : excelFile
+                  ? "border-emerald-500/40 bg-emerald-500/5"
+                  : "border-border bg-card hover:border-gold/30"
+              }`}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".xlsx,.xlsm"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) setExcelFile(f);
+                }}
+              />
+              {excelFile ? (
+                <div className="flex flex-col items-center gap-2">
+                  <CheckCircle2 className="h-10 w-10 text-emerald-400" />
+                  <div className="font-mono text-sm">{excelFile.name}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {(excelFile.size / 1024).toFixed(1)} KB · click to change
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-2">
+                  <Upload className="h-10 w-10 text-muted-foreground" />
+                  <div className="font-medium">Drop your mapping spec here</div>
+                  <div className="text-xs text-muted-foreground">
+                    or click to browse · .xlsx · .xlsm
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Dialect + Run button */}
           <div className="flex flex-col md:flex-row items-end gap-4">
             <div className="flex-1 w-full">
               <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
@@ -130,7 +254,7 @@ export default function PipelinePage() {
                 ))}
               </div>
             </div>
-            <Button onClick={runMapping} disabled={busy} size="lg">
+            <Button onClick={runMapping} disabled={busy || (source === "upload" && !excelFile)} size="lg">
               {busy && stage === 0 ? <><Loader2 className="h-4 w-4 animate-spin" /> Running…</> : <><Sparkles className="h-4 w-4" /> Run Mapping</>}
             </Button>
           </div>
