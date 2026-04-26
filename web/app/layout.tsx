@@ -8,6 +8,9 @@ export const metadata: Metadata = {
   description: "AI-orchestrated FSLDM data warehouse migration platform for Tier-1 banks.",
 };
 
+// Force dynamic rendering on all pages — avoids serverless pre-render crashes.
+export const dynamic = "force-dynamic";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
