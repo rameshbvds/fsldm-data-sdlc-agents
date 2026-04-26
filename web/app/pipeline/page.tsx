@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { StageTimeline } from "@/components/stage-timeline";
 import { StatCard } from "@/components/stat-card";
+import { MappingTable } from "@/components/mapping-table";
+import { OpenQuestionsGrid } from "@/components/open-questions-grid";
 import {
   artifactUrl,
   createRun,
@@ -342,57 +344,26 @@ export default function PipelinePage() {
             </Card>
           </div>
 
-          {/* Per-table detail */}
+          {/* Field-Level Lineage — search · filters · syntax-highlight · copy · mobile-cards */}
           <div className="space-y-4">
-            <h3 className="font-display text-xl font-bold tracking-tight">Field-Level Lineage</h3>
-            {spec.target_tables.map((t) => (
-              <details key={t.target_table} className="group rounded-2xl border border-border bg-card overflow-hidden">
-                <summary className="cursor-pointer list-none p-5 flex items-center justify-between hover:bg-muted/30 transition-colors">
-                  <div>
-                    <div className="font-mono font-semibold tracking-tight">{t.target_table}</div>
-                    <div className="text-xs text-muted-foreground mt-0.5">{t.grain_description}</div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="success">{t.field_mappings.filter((f) => f.confidence >= 0.85).length} high</Badge>
-                    <Badge variant="warning">{t.field_mappings.filter((f) => f.confidence >= 0.5 && f.confidence < 0.85).length} mid</Badge>
-                    <Badge variant="danger">{t.field_mappings.filter((f) => f.confidence < 0.5).length} low</Badge>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground group-open:rotate-90 transition-transform" />
-                  </div>
-                </summary>
-                <div className="border-t border-border overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead className="bg-muted/30">
-                      <tr className="text-left text-xs uppercase tracking-wider text-muted-foreground">
-                        <th className="px-5 py-3 font-medium">Target column</th>
-                        <th className="px-5 py-3 font-medium">Source expression</th>
-                        <th className="px-5 py-3 font-medium">Confidence</th>
-                        <th className="px-5 py-3 font-medium">Note</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {t.field_mappings.map((fm) => (
-                        <tr key={fm.target_column} className="border-t border-border/50 hover:bg-muted/20">
-                          <td className="px-5 py-3 font-mono text-xs">{fm.target_column}</td>
-                          <td className="px-5 py-3 font-mono text-xs text-muted-foreground max-w-md truncate">{fm.source_expr}</td>
-                          <td className="px-5 py-3 w-48">
-                            <div className="flex items-center gap-2">
-                              <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
-                                <div
-                                  className={`h-full ${fm.confidence >= 0.85 ? "bg-emerald-500" : fm.confidence >= 0.5 ? "bg-amber-500" : "bg-red-500"}`}
-                                  style={{ width: `${fm.confidence * 100}%` }}
-                                />
-                              </div>
-                              <span className="font-mono text-xs">{fm.confidence.toFixed(2)}</span>
-                            </div>
-                          </td>
-                          <td className="px-5 py-3 text-xs text-muted-foreground">{fm.transform_note}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </details>
-            ))}
+            <div>
+              <h3 className="font-display text-xl font-bold tracking-tight">Field-Level Lineage</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Search and filter the {nFields} mappings. Click any table to expand. Hover a row to copy the source expression.
+              </p>
+            </div>
+            <MappingTable targets={spec.target_tables} />
+          </div>
+
+          {/* Open Questions — card grid grouped by table */}
+          <div className="space-y-4 pt-4">
+            <div>
+              <h3 className="font-display text-xl font-bold tracking-tight">Open Questions</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Mappings the heuristic could not confidently resolve. Each requires a human decision before SQL emit.
+              </p>
+            </div>
+            <OpenQuestionsGrid targets={spec.target_tables} />
           </div>
 
           {/* HITL */}
