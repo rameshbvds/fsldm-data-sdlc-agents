@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: fsldm-uat
+    env: docker
+    plan: starter
+    region: oregon
+    branch: master
+    healthCheckPath: /_stcore/health
+    envVars:
+      - key: UAT_PASSWORD
+        sync: false        # set in dashboard
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: LLM_PROVIDER
+        value: anthropic

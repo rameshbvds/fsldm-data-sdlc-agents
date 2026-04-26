@@ -23,7 +23,7 @@ from agents.state import SDLCState
 app    = typer.Typer(help="FSLDM Deposit Data SDLC Agent")
 console = Console()
 
-SCHEMA_DIR = Path(__file__).parent / "schemas"
+SCHEMA_DIR = Path(__file__).parent.parent / "schemas"
 
 
 def load_schemas() -> tuple[dict, dict, list[str]]:

@@ -1,0 +1,108 @@
+{
+  "$schema": "https://code.claude.com/schemas/settings.json",
+  "model": "claude-opus-4-7",
+  "effort": "medium",
+  "permissions": {
+    "defaultMode": "auto",
+    "allow": [
+      "Bash(git:*)",
+      "Bash(make:*)",
+      "Bash(python:*)",
+      "Bash(pytest:*)",
+      "Bash(.venv/Scripts/python.exe:*)",
+      "Bash(.venv/bin/python:*)",
+      "Read",
+      "Grep",
+      "Glob",
+      "Edit",
+      "Write"
+    ],
+    "deny": [
+      "Bash(rm -rf /*)",
+      "Bash(rm -rf ~)",
+      "Bash(git push *--force*)",
+      "Bash(git reset --hard*)",
+      "Read(.env)",
+      "Read(.env.*)",
+      "Read(**/*.pem)",
+      "Read(**/id_rsa)",
+      "Read(**/credentials*)",
+      "Bash(curl http*pastebin*)",
+      "Bash(curl http*ngrok*)"
+    ]
+  },
+  "sandbox": {
+    "enabled": true,
+    "failIfUnavailable": false,
+    "network": {
+      "allowedDomains": [
+        "github.com",
+        "api.github.com",
+        "raw.githubusercontent.com",
+        "pypi.org",
+        "files.pythonhosted.org",
+        "registry.npmjs.org",
+        "api.anthropic.com"
+      ],
+      "deniedDomains": ["*.ngrok.io", "pastebin.com", "transfer.sh"],
+      "allowMachLookup": true
+    },
+    "filesystem": {
+      "allowWrite": ["/tmp/claude/*", "${CLAUDE_PROJECT_DIR}/*"]
+    }
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PROJECT_DIR}/.claude/hooks/pii-scan.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PROJECT_DIR}/.claude/hooks/prompt-injection-scan.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PROJECT_DIR}/.claude/hooks/sqlglot-validate.sh"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PROJECT_DIR}/.claude/hooks/pre-compact.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "env": {
+    "PYTHONIOENCODING": "utf-8",
+    "PYTHONUTF8": "1",
+    "LLM_PROVIDER": "claude_code",
+    "ENABLE_PROMPT_CACHING_1H": "1",
+    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "80"
+  },
+  "includeGitInstructions": true,
+  "cleanupPeriodDays": 30,
+  "enabledPlugins": ["gstack@gstack", "ui-ux-pro-max@ui-ux-pro-max-skill"],
+  "_pluginsNote": "Plugins listed here are activated only after the user runs the install commands in scripts/install-claude-plugins.md. Settings are advisory until the marketplaces are added at user scope."
+}

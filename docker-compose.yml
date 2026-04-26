@@ -1,0 +1,25 @@
+services:
+  api:
+    build: { context: ., dockerfile: Dockerfile.api }
+    image: fsldm-api:local
+    ports: ["8000:8000"]
+    environment:
+      LLM_PROVIDER: ${LLM_PROVIDER:-auto}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    volumes:
+      - ./data:/app/data
+      - ./sql_teradata:/app/sql_teradata
+      - ./sql_dbt_gen:/app/sql_dbt_gen
+      - ./gx:/app/gx
+      - ./soda:/app/soda
+      - ./sql_bteq:/app/sql_bteq
+    restart: unless-stopped
+
+  web:
+    build: { context: ./web, dockerfile: Dockerfile }
+    image: fsldm-web:local
+    ports: ["3000:3000"]
+    environment:
+      API_URL: http://api:8000
+    depends_on: [api]
+    restart: unless-stopped

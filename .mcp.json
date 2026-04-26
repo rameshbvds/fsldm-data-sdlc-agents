@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}" }
+    },
+    "postgres-readonly": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-postgres", "${POSTGRES_READONLY_URL}"],
+      "comment": "Read-only DB cursor for db-reader subagent. Set POSTGRES_READONLY_URL in .env."
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"],
+      "comment": "Up-to-date docs for langgraph, sqlglot, dbt, great-expectations."
+    }
+  }
+}
