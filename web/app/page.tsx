@@ -111,7 +111,7 @@ export default function DashboardPage() {
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-gold opacity-75" />
                 <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-gold" />
               </span>
-              FSLDM Data SDLC Platform
+              FSLDM AI · Data SDLC Platform
             </motion.div>
 
             <motion.h1
@@ -131,7 +131,7 @@ export default function DashboardPage() {
               transition={{ duration: 0.7, delay: 0.3 }}
               className="mt-6 max-w-2xl text-lg text-muted-foreground md:text-xl leading-relaxed"
             >
-              An AI-assisted scaffolding tool for FSLDM data warehouse migration.
+              An <span className="text-gold-400 font-semibold">AI-powered</span> scaffolding tool for FSLDM data warehouse migration.
               Auto-resolves the obvious 80%+ of column mappings, flags the rest for human
               review, and emits dialect-correct SQL skeletons plus data-quality test stubs.
             </motion.p>

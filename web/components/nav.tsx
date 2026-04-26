@@ -24,10 +24,10 @@ export function Nav() {
           </div>
           <div className="leading-tight">
             <div className="font-display text-base font-bold tracking-tight">
-              FSLDM<span className="text-gold mx-0.5">·</span>SDLC
+              FSLDM<span className="text-gold mx-1">AI</span>SDLC
             </div>
             <div className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
-              Enterprise Console
+              AI Data Pipeline Console
             </div>
           </div>
         </Link>

@@ -4,7 +4,7 @@ import { Nav } from "@/components/nav";
 import { Footer } from "@/components/footer";
 
 export const metadata: Metadata = {
-  title: "FSLDM · Data SDLC Console",
+  title: "FSLDM AI · Data SDLC Console",
   description: "AI-orchestrated FSLDM data warehouse migration platform for Tier-1 banks.",
 };
 
