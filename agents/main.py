@@ -11,6 +11,7 @@ import sys
 from pathlib import Path
 from typing import Optional
 
+from dotenv import load_dotenv
 import typer
 from rich.console import Console
 from rich.table import Table
@@ -19,6 +20,9 @@ from rich.syntax import Syntax
 
 from agents.graph import graph
 from agents.state import SDLCState
+
+# Load .env file from project root
+load_dotenv(Path(__file__).parent.parent / ".env")
 
 app    = typer.Typer(help="FSLDM Deposit Data SDLC Agent")
 console = Console()
