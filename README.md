@@ -16,6 +16,43 @@ dialect-correct SQL skeletons + data-quality test suites in seconds.
 
 ---
 
+## 🚀 Quick Start (3 Steps)
+
+### For Windows Demo (OCBC LLM)
+
+**Step 1:** Clone and setup
+```powershell
+git clone https://github.com/YOUR-ORG/fsldm-data-sdlc-agents.git
+cd fsldm-data-sdlc-agents
+py -3.12 -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -e .[dev]
+```
+
+**Step 2:** Configure OCBC
+```bash
+# Copy .env.template to .env and fill in OCBC_API_KEY
+# Already configured for OCBC Bank LLM (gpt-5.1-codex)
+```
+
+**Step 3:** Run demo
+```powershell
+LLM_PROVIDER=ocbc make run
+```
+
+**Demo ready!** See `WINDOWS_DEMO.md` for full Windows setup guide.
+
+---
+
+### For macOS/Linux
+
+```bash
+make setup
+LLM_PROVIDER=ocbc make run
+```
+
+---
+
 ## Live demo
 
 | Surface | URL | Notes |

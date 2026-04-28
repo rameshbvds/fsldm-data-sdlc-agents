@@ -4,6 +4,7 @@ Choose backend via LLM_PROVIDER env var:
   - openrouter     → OpenRouter API (recommended for cheap demos)
   - anthropic      → Anthropic API directly
   - claude_code    → Local `claude` CLI (free dev mode)
+  - ocbc           → OCBC Bank internal LLM platform (gpt-5.1-codex)
   - auto (default) → openrouter > anthropic > claude_code based on which env var is set
 """
 from __future__ import annotations
@@ -75,6 +76,60 @@ class OpenRouterLLM:
         return (resp.choices[0].message.content or "").strip()
 
 
+# ── OCBC Bank Internal LLM Platform ───────────────────────────────────────────
+class OCBCLLM:
+    """OCBC Bank's internal LLM platform (OpenAI-compatible endpoint)."""
+
+    def __init__(self, model: str | None = None, timeout: int = 60):
+        self.model = model or os.getenv("OCBC_MODEL", "gpt-5.1-codex")
+        self.timeout = timeout
+        self.endpoint = os.getenv(
+            "OCBC_ENDPOINT",
+            "https://genaiplatform-appgw.dev.c2.ocbc.com/foundryeastus2/openai/v1/responses/",
+        )
+        self.api_key = os.environ["OCBC_API_KEY"]
+
+        try:
+            import requests  # noqa
+        except ImportError as e:
+            raise RuntimeError("`requests` package required for OCBC LLM. pip install requests") from e
+        import requests
+        self._session = requests.Session()
+        self._session.verify = False  # OCBC uses internal certs
+
+    def invoke(self, prompt: str, system: str | None = None) -> str:
+        import requests
+        import urllib3
+
+        # Suppress SSL warnings for internal OCBC endpoint
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+        headers = {
+            "Content-Type": "application/json",
+            "api-key": self.api_key,
+        }
+
+        # OCBC format: model, input (prompt), instructions (system), max_output_tokens
+        payload = {
+            "model": self.model,
+            "input": prompt,
+            "instructions": system or "You are a helpful assistant.",
+            "max_output_tokens": 2000,
+        }
+
+        resp = self._session.post(
+            self.endpoint,
+            json=payload,
+            headers=headers,
+            timeout=self.timeout,
+        )
+        resp.raise_for_status()
+
+        data = resp.json()
+        # OCBC returns { "output": "...", "model": "...", "usage": {...} }
+        return (data.get("output") or "").strip()
+
+
 # ── Factory ─────────────────────────────────────────────────────────────────
 def get_llm() -> Any:
     provider = os.getenv("LLM_PROVIDER", "auto").lower().strip()
@@ -86,6 +141,8 @@ def get_llm() -> Any:
         return ChatAnthropic(model=PROD_MODEL_ANTHROPIC, max_tokens=8000)
     if provider == "claude_code":
         return LocalClaudeLLM()
+    if provider == "ocbc":
+        return OCBCLLM()
 
     # auto: pick based on which key is present
     if os.getenv("OPENROUTER_API_KEY"):
@@ -93,6 +150,8 @@ def get_llm() -> Any:
     if os.getenv("ANTHROPIC_API_KEY"):
         from langchain_anthropic import ChatAnthropic
         return ChatAnthropic(model=PROD_MODEL_ANTHROPIC, max_tokens=8000)
+    if os.getenv("OCBC_API_KEY"):
+        return OCBCLLM()
     return LocalClaudeLLM()
 
 

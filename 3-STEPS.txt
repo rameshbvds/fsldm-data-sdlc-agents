@@ -1,0 +1,43 @@
+╔══════════════════════════════════════════════════════════════╗
+║     FSLDM DEMO - 3 STEPS FOR WINDOWS DEVELOPER               ║
+╚══════════════════════════════════════════════════════════════╝
+
+STEP 1: Clone and Setup (2 minutes)
+───────────────────────────────────
+git clone https://github.com/YOUR-ORG/fsldm-data-sdlc-agents.git
+cd fsldm-data-sdlc-agents
+py -3.12 -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -e .[dev]
+
+
+STEP 2: Configure OCBC (1 minute)
+─────────────────────────────────
+Copy .env.template to .env
+Edit .env and replace: your_ocbc_api_key_here → actual OCBC key
+
+
+STEP 3: Run Demo (30 seconds)
+────────────────────────────
+LLM_PROVIDER=ocbc make run
+
+
+THAT'S IT\! Demo is ready.
+╚══════════════════════════════════════════════════════════════╝
+
+FILES CREATED FOR YOU:
+──────────────────────
+✓ WINDOWS_DEMO.md        - Complete Windows setup guide
+✓ WINDOWS_CHECKLIST.md   - Pre-demo checklist + troubleshooting
+✓ .env.template          - OCBC configuration template
+✓ windows-demo.bat       - Automated setup script
+✓ README.md              - Updated with 3-step quick start
+
+OCBC INTEGRATION:
+────────────────
+✓ agents/llm.py           - OCBCLLM class added
+✓ OCBC endpoint           - Configured for gpt-5.1-codex
+✓ SSL warnings            - Suppressed for internal certs
+✓ Error handling          - Full timeout and retry logic
+
+DEMO READY IN: 10 minutes
