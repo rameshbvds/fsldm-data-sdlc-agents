@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:pypi.org)",
+      "WebFetch(domain:files.pythonhosted.org)",
+      "WebFetch(domain:registry.npmjs.org)",
+      "Bash(LLM_PROVIDER=claude_code .venv/bin/python -m agents.main run --dialect teradata --hitl-decision approve)",
+      "Bash(LLM_PROVIDER=claude_code PYTHONIOENCODING=utf-8 PYTHONUTF8=1 .venv/bin/python:*)",
+      "Bash(curl -s http://localhost:8000/api/health)",
+      "Bash(curl -s http://127.0.0.1:8000/api/health)",
+      "Bash(LLM_PROVIDER=ocbc .venv/bin/streamlit run:*)",
+      "Bash(LLM_PROVIDER=ocbc .venv/bin/python:*)"
+    ]
+  }
+}

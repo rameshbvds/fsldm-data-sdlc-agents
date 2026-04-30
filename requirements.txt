@@ -35,3 +35,7 @@ pydantic>=2.0.0
 # ── Dev / testing ─────────────────────────────────────────────
 pytest>=8.0.0
 python-dotenv>=1.0.0
+requests>=2.31.0
+
+# ── OCBC LLM integration ───────────────────────────────────────
+# Already covered by requests above

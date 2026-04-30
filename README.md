@@ -20,27 +20,29 @@ dialect-correct SQL skeletons + data-quality test suites in seconds.
 
 ### For Windows Demo (OCBC LLM)
 
-**Step 1:** Clone and setup
+**Option A: Automated Setup (Recommended)**
 ```powershell
-git clone https://github.com/YOUR-ORG/fsldm-data-sdlc-agents.git
-cd fsldm-data-sdlc-agents
+# Clone and extract project
+# Navigate to folder
+setup.bat              # One-time setup
+notepad .env           # Add your OCBC_API_KEY
+run-demo.bat           # Run demo
+```
+
+**Option B: Manual Setup**
+```powershell
 py -3.12 -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -e .[dev]
+copy .env.example .env
+# Edit .env with your API key
+LLM_PROVIDER=ocbc .venv\Scripts\python.exe -m agents.main run --hitl-decision approve
 ```
 
-**Step 2:** Configure OCBC
-```bash
-# Copy .env.template to .env and fill in OCBC_API_KEY
-# Already configured for OCBC Bank LLM (gpt-5.1-codex)
-```
-
-**Step 3:** Run demo
-```powershell
-LLM_PROVIDER=ocbc make run
-```
-
-**Demo ready!** See `WINDOWS_DEMO.md` for full Windows setup guide.
+**📖 Full Guides:**
+- `BANKING_WINDOWS_SETUP.md` — Comprehensive setup guide
+- `QUICK_REFERENCE_WINDOWS.md` — Command cheat sheet
+- `verify-setup.bat` — Check if everything is installed correctly
 
 ---
 

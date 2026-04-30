@@ -1,0 +1,48 @@
+# QUICK MESSAGE FOR RAMESH (Email/Teams/WhatsApp)
+
+---
+
+**Subject:** FSLDM Demo Setup - Windows Laptop (15 min setup)
+
+Hi Ramesh,
+
+Please set up the FSLDM demo on your Windows laptop for the office presentation.
+
+**QUICK SETUP (3 steps):**
+
+**Step 1:** Clone and install (5 min)
+```powershell
+git clone https://github.com/rameshbvds/fsldm-data-sdlc-agents.git
+cd fsldm-data-sdlc-agents
+py -3.12 -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -e .[dev]
+```
+
+**Step 2:** Configure OCBC API key (2 min)
+```powershell
+copy .env.example .env
+notepad .env
+# Replace: your_ocbc_api_key_here → your actual OCBC key
+```
+
+**Step 3:** Run demo (30 sec)
+```powershell
+LLM_PROVIDER=ocbc make run
+```
+
+**BACKUP:** If setup fails, use live demo: https://fsldm.vercel.app
+
+**WHAT TO SHOW:**
+- AI maps 3 deposit tables (80 fields)
+- Generates Teradata + dbt SQL
+- Creates 57 data quality tests
+- Uses OCBC Bank's gpt-5.1-codex model
+
+**Total time:** 15 min setup + 2 min demo
+
+Full guide: WINDOWS_DEMO.md in repo
+
+Let me know if you need help!
+
+---
